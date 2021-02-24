@@ -1,0 +1,234 @@
+
+// ImageEditorDlg.cpp : implementation file
+//
+
+#include "stdafx.h"
+#include "ImageEditor.h"
+#include "ImageEditorDlg.h"
+#include "afxdialogex.h"
+#include "stdafx.h"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <stdio.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+
+using namespace cv;
+using namespace std;
+
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
+CString sPath;
+string mypath;
+
+
+// CImageEditorDlg dialog
+
+
+
+CImageEditorDlg::CImageEditorDlg(CWnd* pParent /*=NULL*/)
+	: CDialogEx(CImageEditorDlg::IDD, pParent)
+{
+	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+}
+
+void CImageEditorDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialogEx::DoDataExchange(pDX);
+}
+
+BEGIN_MESSAGE_MAP(CImageEditorDlg, CDialogEx)
+	ON_WM_PAINT()
+	ON_WM_QUERYDRAGICON()
+	ON_EN_CHANGE(IDC_EDIT1, &CImageEditorDlg::OnEnChangeEdit1)
+	//ON_BN_CLICKED(IDC_BUTTON7, &CImageEditorDlg::OnBnClickedButton7)
+	ON_BN_CLICKED(IDC_BUTTON5, &CImageEditorDlg::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTON4, &CImageEditorDlg::OnBnClickedButton4)
+	ON_BN_CLICKED(IDC_BUTTON1, &CImageEditorDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CImageEditorDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON6, &CImageEditorDlg::OnBnClickedButton6)
+	//ON_BN_CLICKED(IDC_BUTTON3, &CImageEditorDlg::OnBnClickedButton3)
+END_MESSAGE_MAP()
+
+
+// CImageEditorDlg message handlers
+
+BOOL CImageEditorDlg::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// Set the icon for this dialog.  The framework does this automatically
+	//  when the application's main window is not a dialog
+	SetIcon(m_hIcon, TRUE);			// Set big icon
+	SetIcon(m_hIcon, FALSE);		// Set small icon
+
+	ShowWindow(SW_MINIMIZE);
+
+	// TODO: Add extra initialization here
+
+	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+// If you add a minimize button to your dialog, you will need the code below
+//  to draw the icon.  For MFC applications using the document/view model,
+//  this is automatically done for you by the framework.
+
+void CImageEditorDlg::OnPaint()
+{
+	if (IsIconic())
+	{
+		CPaintDC dc(this); // device context for painting
+
+		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
+
+		// Center icon in client rectangle
+		int cxIcon = GetSystemMetrics(SM_CXICON);
+		int cyIcon = GetSystemMetrics(SM_CYICON);
+		CRect rect;
+		GetClientRect(&rect);
+		int x = (rect.Width() - cxIcon + 1) / 2;
+		int y = (rect.Height() - cyIcon + 1) / 2;
+
+		// Draw the icon
+		dc.DrawIcon(x, y, m_hIcon);
+	}
+	else
+	{
+		CDialogEx::OnPaint();
+	}
+}
+
+// The system calls this function to obtain the cursor to display while the user drags
+//  the minimized window.
+HCURSOR CImageEditorDlg::OnQueryDragIcon()
+{
+	return static_cast<HCURSOR>(m_hIcon);
+}
+
+
+
+void CImageEditorDlg::OnEnChangeEdit1()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+}
+
+
+
+void CImageEditorDlg::OnBnClickedButton5()
+{
+	// TODO: Add your control notification handler code here
+	UpdateData(true);
+	string window_negative = "Negative Image";
+	std::string mypath(CW2A(sPath.GetString()));
+	Mat im1 = imread(mypath);
+	Mat im2 = Mat::zeros(im1.size(), im1.type());
+	Mat im3 = Mat::ones(im1.size(), im1.type()) * 255;
+	subtract(im3, im1, im2);
+	namedWindow(window_negative);
+	imshow(window_negative, im2);
+	waitKey(0);
+	return;
+}
+
+
+void CImageEditorDlg::OnBnClickedButton4()
+{
+	// TODO: Add your control notification handler code here
+	UpdateData(true);
+	string window_rot = "Rotated Image";
+	std::string mypath(CW2A(sPath.GetString()));
+	Mat imsrc = imread(mypath);
+	Mat det;
+	Point2f pt(imsrc.cols / 2., imsrc.rows / 2.);
+	Mat rot = cv::getRotationMatrix2D(pt, -45, 1.0);
+	warpAffine(imsrc, det, rot, imsrc.size());
+	namedWindow(window_rot);
+	imshow(window_rot, det);
+	waitKey(0);
+	return;
+}
+
+
+void CImageEditorDlg::OnBnClickedButton1()
+
+{
+	UpdateData(true);
+	//string mypath;
+	//CStatic m_PictureCtrl;
+	CFileDialog dlg(TRUE);
+	if (dlg.DoModal() == IDOK)
+	{
+		CString sPath = dlg.GetPathName();
+		
+		CImage img;
+		HRESULT hr = img.Load(sPath);
+		if (FAILED(hr))
+		{
+			CString sErrorMsg;
+			sErrorMsg.Format(_T("Failed to load %s"), sPath);
+			AfxMessageBox(sErrorMsg);
+			return;
+		}
+		
+		
+			std::string mypath(CW2A(sPath.GetString()));
+			Mat m = imread(mypath);
+			//CString cs("Hello") std::string s((LPCTSTR)cs);
+	
+
+		string window_img = "Browsed Image";
+		namedWindow(window_img);
+		imshow(window_img,m);
+		waitKey(0);
+		return;
+		
+	}
+
+	UpdateData(true);
+}
+
+
+void CImageEditorDlg::OnBnClickedButton2()
+{
+	UpdateData(true);
+	// TODO: Add your control notification handler code here
+	std::string mypath(CW2A(sPath.GetString()));
+	Mat im = imread(mypath);
+	Mat im_blurred;
+	GaussianBlur(im, im_blurred, Size(7, 7), 0);
+	String window_blurredimg = "Blur Image";
+    namedWindow(window_blurredimg);
+	imshow(window_blurredimg, im_blurred);
+
+	waitKey(0);
+	return;
+	destroyAllWindows();
+	
+}
+
+
+void CImageEditorDlg::OnBnClickedButton6()
+{
+	// TODO: Add your control notification handler code 
+	
+	string window_gray = "Gray Image";
+	std::string mypath(CW2A(sPath.GetString()));
+	Mat ig = imread(mypath);
+	Mat grayig;
+	cvtColor(ig, grayig, COLOR_RGB2GRAY);
+	namedWindow(window_gray);
+	imshow(window_gray, grayig);
+	waitKey(0);
+	return;
+}
+
+
